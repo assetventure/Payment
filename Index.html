@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paystack Payment</title>
+    <script src="https://js.paystack.co/v1/inline.js"></script> <!-- Paystack SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <!-- SweetAlert2 for alert dialogs -->
+</head>
+<body>
+
+    <h2>Make a Payment</h2>
+    <form id="PaymentForm">
+        <label for="email-address">Email:</label>
+        <input type="email" id="email-address" required><br><br>
+
+        <label for="amount">Amount (NGN):</label>
+        <input type="number" id="amount" required><br><br>
+
+        <button type="submit">Pay Now</button>
+    </form>
+
+    <script>
+        document.getElementById('PaymentForm').addEventListener("submit", PayWithPaystack, false);
+
+        function PayWithPaystack(e) {
+            e.preventDefault();
+
+            let handler = PaystackPop.setup({
+                key: 'pk_test_ca55286f96b59b5be125bdc74ea16d5ec50489f7', // Replace with your public key
+                email: document.getElementById('email-address').value,
+                amount: (parseFloat(document.getElementById("amount").value) * 100),
+                currency: 'NGN',
+                metadata: {
+                    transaction_type: 'gasfee'
+                },
+                ref: '' + Math.floor((Math.random() * 1000000000) + 1),
+
+                onClose: function() {
+                    Swal.fire({
+                        title: 'Transaction not completed',
+                        text: 'It seems the transaction was not completed.',
+                        icon: 'warning',
+                        confirmButtonText: 'Okay'
+                    });
+                },
+
+                callback: function(response) {
+                    Swal.fire({
+                        title: 'Payment Successful!',
+                        text: 'Reference: ' + response.reference,
+                        icon: 'success',
+                        confirmButtonText: 'Okay'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = "/payment/verify/" + response.reference + "?transaction_type=gasfee";
+                        }
+                    });
+                }
+            });
+
+            handler.openIframe();
+        }
+    </script>
+
+</body>
+</html>
